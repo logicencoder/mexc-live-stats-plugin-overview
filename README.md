@@ -1,86 +1,280 @@
-# MEXC Exchange - Live Trading Statistics WordPress Plugin (Overview)
+# MEXC Live Trading Statistics — WordPress Plugin (Public Overview)
 
-Public overview repository for the private WordPress plugin implementation.
+How the **private WordPress plugin** presents the MEXC live stats product on LogicEncoder.com.  
+No PHP source, API keys, or hosting credentials in this repository.
 
-> This repository documents capabilities and integration architecture only. Private implementation code is intentionally not published.
-
-## Positioning
-
-This plugin is the live WordPress delivery layer for `https://logicencoder.com/mexc-app/`.
-It renders the operator dashboard UI, coordinates data fetch from the private backend, and receives snapshot payloads for SEO-indexable content pages.
-
-- Current delivery mode: live WordPress plugin + private FastAPI backend
-- Live URL: `https://logicencoder.com/mexc-app/`
-- Source exposure mode: capabilities and integration architecture only
-
-## UI Snapshot
+**Live URL:** [logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/)  
+**Private implementation:** [mexc-live-stats-plugin](https://github.com/logicencoder/mexc-live-stats-plugin)
 
 ![MEXC Live Trading Statistics Dashboard](./screenshot.png)
 
-## Product Summary
+---
 
-The plugin solves one practical frontend problem: provide a responsive, operator-friendly trading statistics interface inside WordPress without exposing backend internals.
+## Purpose
 
-## Tech Stack Used
+WordPress is where visitors land. The plugin embeds a **multi-coin realtime dashboard** via shortcode, connects the browser to the private FastAPI backend, and **receives** pre-computed SEO snapshots so search engines index static HTML with Schema.org data—not an empty React/Vanilla shell.
 
-- **Plugin runtime**: PHP + WordPress plugin APIs
-- **Frontend delivery**: shortcode-rendered dashboard (`[mexc_dashboard]`) + JavaScript runtime
-- **Integration**: WordPress AJAX + REST routes + backend API/WebSocket consumption
-- **SEO publishing**: snapshot ingest + sitemap and metadata management
+---
 
-## High-Level Responsibilities
+## System position
 
-- Render live dashboard UI through shortcode page embedding
-- Fetch and display backend statistics in near real time
-- Expose snapshot ingest REST endpoint (`POST /wp-json/mexc/v1/snapshot`)
-- Persist snapshot pages and support sitemap update flows
-- Apply SEO/canonical metadata for snapshot content
-- Provide admin controls for snapshot status/settings
+```
+Visitor opens page with [mexc_dashboard]
+        │
+        ├──► Browser ◄──WebSocket/REST──► FastAPI backend (private)
+        │
+        └──► Crawler ◄──static HTML────► /snapshots/*.html (written by plugin)
+                      ▲
+                      │ POST JSON (scheduled)
+               FastAPI snapshot job
+```
 
-## Integration Flow
+Backend overview: [mexc-live-stats-backend-overview](https://github.com/logicencoder/mexc-live-stats-backend-overview).
 
-1. User opens the WordPress page containing `[mexc_dashboard]`
-2. Plugin frontend runtime requests stats from backend endpoints
-3. Backend delivers realtime/statistical payloads to plugin UI
-4. Backend posts periodic snapshot payloads to plugin REST endpoint
-5. Plugin stores snapshot content and updates sitemap/indexing workflow
+---
 
-## Current UI Iteration Changes
+## Live dashboard shortcode
 
-- Removed related coins widget from the live dashboard layout
-- Kept display mode controls (`Ticker`, `Name`, `Both`) for coin selector labeling
-- Fixed mobile layout by placing display mode controls under search input
-- Reduced search-to-controls spacing issue caused by flex growth on mobile
+### What
 
-## Who This Overview Is For
+The `[mexc_dashboard]` shortcode renders the full trading UI: searchable coin grid, per-symbol stats cards, live trade list, display modes (ticker / name / both), and mobile layout fixes (controls under search on narrow screens). Assets load only on pages that contain the shortcode (or block embedding it).
 
-### Recruiters
+### Why it exists
 
-Use this repo to evaluate practical WordPress + realtime integration delivery (not template-only plugin work).
+Editors need a one-line embed without custom theme templates. Conditional loading avoids running heavy JS site-wide.
 
-### System Engineers
+### Who benefits
 
-Use this repo to review frontend/backend boundary design, snapshot ingestion flow, and plugin-side operational responsibilities.
+- **Visitors** — single-page experience for hundreds of MEXC USDT pairs.  
+- **Site owners** — drop-in block/shortcode, no child-theme fork.  
+- **Operators** — same UI as production with admin connection settings.
 
-### Collaborators
+### How it fits
 
-Use this repo to understand extension points for UI modules, endpoint wiring, and snapshot/SEO behavior.
+Frontend JavaScript speaks MessagePack to backend `/ws` and uses REST bootstrap endpoints configured in plugin settings (URLs are private deploy details).
 
-### Potential Employers
+---
 
-Use this repo as evidence of production-minded PHP plugin work integrated with async backend systems.
+## Backend connection (read path)
 
-## Security & Disclosure Policy
+### What
 
-- Private repository retains implementation internals.
-- Public overview excludes endpoint secrets, infrastructure wiring, and private admin logic.
-- This repository is intentionally non-sensitive and documentation-first.
+The plugin exposes AJAX endpoints so the browser can obtain the WebSocket API key, server monitoring stats, coin full names, and health panels. Admin screens poll snapshot disk status and sitemap generation results.
 
-## Related Private Repositories
+### Why it exists
 
-- `logicencoder/mexc-live-stats-plugin`
-- `logicencoder/mexc-live-stats-backend` (integration counterpart)
+Secrets must not be hard-coded in public JS files. WordPress stores keys in options; AJAX delivers them to authenticated sessions or controlled nopriv handlers as implemented.
+
+### Who benefits
+
+- **Visitors** — seamless connect/subscribe flow.  
+- **Operators** — see whether backend queues are backing up before users complain.
+
+### How it fits
+
+Read-only toward the backend; the plugin does not ingest MEXC directly.
+
+---
+
+## Snapshot receive and HTML publish
+
+### What
+
+`POST /wp-json/mexc/v1/snapshot` accepts JSON from the Python server: symbol, snapshot type (generic vs exchange-specific), Schema.org bundle, stats object, slug, optional base64 chart image. The plugin renders HTML, writes files under the web root:
+
+- `/snapshots/{slug}.html` — generic price pages  
+- `/snapshots/mexc/{slug}.html` — MEXC-branded pages  
+- `/snapshots/charts/*.png` — 24h charts  
+
+### Why it exists
+
+WordPress PHP is the stable write target on Hostinger; Python on SOL does the heavy schema and chart work. Splitting compute (SOL) and publish (WP) matches each platform’s strength.
+
+### Who benefits
+
+- **Search engines** — fetch complete documents.  
+- **AI crawlers** — read JSON-LD with explicit field names from backend.  
+- **Visitors** sharing snapshot URLs — fast TTFB on static files.
+
+### How it fits
+
+Requires matching API key in plugin settings and backend environment—never published in this overview.
+
+---
+
+## Schema.org and FAQ structured data
+
+### What
+
+Rendered snapshot pages embed JSON-LD `Dataset` (and related types) prepared by the backend, plus FAQ blocks where configured. Publisher attribution points to Logic Encoder; citations reference canonical snapshot URLs.
+
+### Why it exists
+
+Rich results and AI summaries reward pages that declare **what** each metric means (not opaque numeric keys).
+
+### Who benefits
+
+- **SEO team** — long-tail price queries.  
+- **Researchers** — reproducible cited datasets.
+
+### How it fits
+
+`render_snapshot_html()` in private code merges backend `schema_data` with theme-aligned CSS.
+
+---
+
+## Snapshot sitemap and IndexNow
+
+### What
+
+The plugin can scan snapshot directories, build an XML sitemap of all published coin pages, append the sitemap URL to `robots.txt`, and ping search engines (including IndexNow when a key is configured). Manual “generate” and “ping” buttons exist in admin.
+
+### Why it exists
+
+Hundreds of new URLs will not be discovered quickly without a sitemap. Automation after each snapshot batch keeps index fresh.
+
+### Who benefits
+
+- **Site owner** — indexing without manual Search Console uploads per coin.  
+- **Visitors** — find pages via search sooner after new listings go live.
+
+### How it fits
+
+Toggleable via settings (`enable_snapshot_sitemap`, `auto_update_sitemap`, `ping_search_engines`).
+
+---
+
+## SEO meta on snapshot routes
+
+### What
+
+For snapshot URL patterns, the plugin injects canonical links and Open Graph tags using coin full names from MEXC metadata helpers.
+
+### Why it exists
+
+Social shares and search consolidation need correct canonicals between generic and exchange-specific variants.
+
+### Who benefits
+
+- **Social traffic** — correct titles in previews.  
+- **SEO** — reduced duplicate-content ambiguity.
+
+### How it fits
+
+Runs on `wp_head` early priority when URI matches snapshot paths.
+
+---
+
+## Admin operator surfaces
+
+### What
+
+- **Settings** — WebSocket URL, API URL, snapshot key, which snapshot types to accept, chart inclusion.  
+- **Snapshot dashboard** — file counts, disk usage, directory writability, refresh status AJAX.  
+- **Sitemap status** — last generation time, URL counts.  
+- **Notices** — success/failure after manual sitemap/ping.
+
+### Why it exists
+
+Operators on shared hosting need visibility without SSH. Counts prove the Python job is still writing files.
+
+### Who benefits
+
+- **Maintainers** — detect 403/permission failures immediately.  
+- **Non-developers** — trigger sitemap regen after bulk symbol add.
+
+### How it fits
+
+Requires `manage_options`; no public admin AJAX for destructive actions.
+
+---
+
+## REST settings endpoint for backend
+
+### What
+
+`GET /wp-json/mexc/v1/settings` returns which snapshot types and sitemap options are enabled so the Python job can skip disabled work.
+
+### Why it exists
+
+Avoid generating exchange-specific pages when the site owner disabled them—saves SOL CPU and disk.
+
+### Who benefits
+
+- **Operators** — one place (WP) controls behavior for both sides.  
+- **Backend** — respects policy without redeploy.
+
+### How it fits
+
+Public read; no secrets in response body.
+
+---
+
+## Visitor analytics hook
+
+### What
+
+Optional lightweight visitor tracking script (configured in private code) logs dashboard usage events for internal metrics.
+
+### Why it exists
+
+Understand which coins drive engagement without third-party trackers on every page.
+
+### Who benefits
+
+- **Product owner** — prioritize symbol list curation.  
+- **Privacy-conscious visitors** — no ad network requirement (implementation-specific).
+
+### How it fits
+
+Loaded from footer script hook on dashboard pages only.
+
+---
+
+## Security model (public summary)
+
+- Snapshot writes require API key header.  
+- Admin functions require WordPress administrator capability.  
+- Static snapshot files should be served with cache headers appropriate for periodic refresh (handled via directory rules in private code).  
+- No exchange API secrets in the plugin—MEXC connectivity is entirely on the backend.
+
+---
+
+## Recent UI iteration (documented behavior)
+
+- Related-coins widget removed from main grid to reduce clutter.  
+- Display mode selector kept (Ticker / Name / Both).  
+- Mobile: display controls moved below search; spacing fixes for flex layout on small screens.
+
+---
+
+## Who should read this repo
+
+| Audience | Use it to… |
+|----------|----------------|
+| **Recruiters** | Understand WordPress + realtime backend integration scope |
+| **PHP/WordPress engineers** | See REST ingest + static SEO split |
+| **SEO specialists** | Map dual snapshot URLs and sitemap flow |
+| **Collaborators** | Extend UI without touching MEXC ingest |
+
+---
+
+## Related repositories
+
+| Repo | Role |
+|------|------|
+| [mexc-live-stats-plugin](https://github.com/logicencoder/mexc-live-stats-plugin) | Private PHP source |
+| [mexc-live-stats-backend-overview](https://github.com/logicencoder/mexc-live-stats-backend-overview) | Ingest + analytics + snapshot generation |
+| [mexc-live-stats-backend](https://github.com/logicencoder/mexc-live-stats-backend) | Private backend |
+
+---
+
+## Disclosure
+
+This repository is documentation and screenshots only. Implementation details, hooks, and exact option names are in the private plugin repo and `ARCHITECTURE.md` there.
+
+---
 
 ## Author note
 
-Built with a practical, self-taught workflow: deliver the UX that operators need, keep boundaries clear between frontend and backend, and avoid hype in public documentation.
+The plugin is deliberately **thin on trading logic** and **thick on publishing and UX**—the backend owns the market feed; WordPress owns what Google indexes.

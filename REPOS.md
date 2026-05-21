@@ -1,8 +1,8 @@
 # MEXC Live Stats — repositories
 
-| Repo | Role |
-|------|------|
-| **mexc-live-stats-plugin-overview** (this) | Public marketing |
-| **mexc-live-stats-plugin** | WordPress plugin source |
-| **mexc-live-stats-backend** | FastAPI backend |
-| **mexc-live-stats-backend-overview** | Backend marketing |
+| Repository | Visibility | URL |
+|------------|------------|-----|
+| mexc-live-stats-plugin | Private | https://github.com/logicencoder/mexc-live-stats-plugin |
+| **mexc-live-stats-plugin-overview** (this) | Public | https://github.com/logicencoder/mexc-live-stats-plugin-overview |
+| mexc-live-stats-backend | Private | https://github.com/logicencoder/mexc-live-stats-backend |
+| mexc-live-stats-backend-overview | Public | https://github.com/logicencoder/mexc-live-stats-backend-overview |
