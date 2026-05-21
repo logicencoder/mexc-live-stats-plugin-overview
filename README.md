@@ -78,8 +78,8 @@ Use this repo as evidence of production-minded PHP plugin work integrated with a
 
 ## Related Private Repositories
 
-- `logicencoder/mexc-live-stats-plugin-private`
-- `logicencoder/mexc-live-stats-backend-private` (integration counterpart)
+- `logicencoder/mexc-live-stats-plugin`
+- `logicencoder/mexc-live-stats-backend` (integration counterpart)
 
 ## Author note
 
