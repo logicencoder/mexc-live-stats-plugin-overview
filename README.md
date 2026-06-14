@@ -1,6 +1,6 @@
 # MEXC Live Stats
 
-Public **MEXC spot trading statistics** dashboard on logicencoder.com — live trade tape, per-symbol 24h stats, charts, coin search, and indexable SEO pages for individual pairs.
+Public **MEXC spot trading statistics** on logicencoder.com — live trade tape, per-symbol analytics, coin search, CSV export, and indexable SEO pages for individual USDT pairs.
 
 Private plugin: [logicencoder/mexc-live-stats-plugin](https://github.com/logicencoder/mexc-live-stats-plugin). Data pipeline: [mexc-live-stats-backend](https://github.com/logicencoder/mexc-live-stats-backend) — [backend overview](https://github.com/logicencoder/mexc-live-stats-backend-overview).
 
@@ -8,25 +8,35 @@ Private plugin: [logicencoder/mexc-live-stats-plugin](https://github.com/logicen
 
 **[logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/)**
 
-Shortcode **`[mexc_dashboard]`** — coin grid with search, display modes (ticker / name / both), live trades, analytics panels, CSV export.
+Shortcode **`[mexc_dashboard]`** — coin grid with search, display modes (ticker / name / both), live trades, charts, visitor analytics script.
 
 ## Per-coin SEO pages
 
-- SSR routes: **[/mexc/{SYMBOL}/](https://logicencoder.com/mexc/)** (Node canonical)
-- Static snapshot HTML under `/snapshots/` and `/snapshots/mexc/` (backend POST from live stats)
-- Chart PNGs at `/snapshots/charts/` for social and search previews
+- Canonical SSR: **[/mexc/{SYMBOL}/](https://logicencoder.com/mexc/)** (Node SSR via backend)
+- Static snapshot HTML: `/snapshots/` and `/snapshots/mexc/` (backend POST pipeline)
+- Chart PNGs: `/snapshots/charts/` for social previews
 
 ## Visitor experience
 
-Real-time WebSocket feed from `wss://ws.logicencoder.com/ws` — scroll or freeze trade tape, bot-activity indicators, pair-level charts backed by PostgreSQL history on the backend.
+Real-time WebSocket from **`wss://ws.logicencoder.com/ws`** (msgpack frames). Trade tape with scroll/freeze, bot-activity panels, pair charts backed by PostgreSQL history on the backend.
 
 ## WordPress admin
 
-Settings: WebSocket URL, API URL, snapshot toggles, sitemap / IndexNow. Snapshot dashboard (file counts, disk usage), manual sitemap generate and search-engine ping. REST endpoints for backend snapshot push and monitoring proxy.
+Settings: WebSocket URL, REST API URL, snapshot toggles, sitemap / IndexNow integration. Snapshot dashboard shows file counts and disk usage. Manual sitemap generate and search-engine ping actions.
+
+**REST (`mexc/v1`):**
+
+| Route | Role |
+|-------|------|
+| `POST /snapshot` | Backend pushes SEO JSON + optional chart PNG |
+| `GET /settings` | Snapshot config for backend worker |
+| `GET /monitoring` | Admin health proxy |
+
+**AJAX:** API key, server stats, monitoring, snapshot status, sitemap status, coin full name (admin + nopriv where wired).
 
 ## Data flow
 
-MEXC protobuf WebSocket → Python ingest → PostgreSQL → fan-out to browser clients and snapshot pipeline → WordPress static SEO files.
+MEXC protobuf WebSocket → Python ingest → PostgreSQL → fan-out to `/ws`, REST stats, and snapshot POST to WordPress. Distinct from **`mexc_trading_app`** (local order-placement console).
 
 See [REPOS.md](REPOS.md).
 
