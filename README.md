@@ -120,47 +120,95 @@ Clicking a chip (or loading `?coin=`): clears tape and stats cache, resets spark
 
 ## Monitor Dashboard
 
-wp-admin **Monitor Dashboard** is the operator nerve center when something looks stale on the public site or trade counts drop after a deploy.
+wp-admin **Monitor Dashboard** is the operator nerve center when something looks stale on the public site or trade counts drop after a deploy. Three panels mirror what you would otherwise SSH in to check.
 
 ### WebSocket throughput and health
 
 Top status bar shows **API** and **SSR** reachability with response times, plus a green **Connected** badge when the admin monitor socket is live.
 
-The **WebSocket throughput** grid tracks messages/sec, download KB/s, peak rate, total downloaded, reconnects, server uptime, min/avg/current latency, and compression ratio. The **3-hour rolling chart** plots download speed and messages/sec per minute.
+The **WebSocket throughput** grid tracks:
+
+- **Messages/sec** and **download KB/s** — is data actually flowing right now?
+- **Peak rate** and **total downloaded** — cumulative volume since server start.
+- **Reconnects** and **server uptime** — spot flapping connections or recent restarts.
+- **Min / avg / current latency** — end-to-end delay from exchange ingest to your browser.
+- **Compression ratio** — MessagePack savings vs raw payload size.
+
+The **3-hour rolling chart** plots download speed and messages/sec per minute — correlate a traffic drop with a deploy, a MEXC outage, or a subscription gap. If messages/sec flatlines while MEXC is healthy, scroll to System logs for auth or subscribe failures.
 
 ![WebSocket monitor — throughput, latency, and API health](assets/websocket-monitor.png)
 
 ### Subscribed pairs and server metrics
 
-**Subscribed pairs** chip wall — dense symbol tags in alphanumeric order. Summary cards: **Subscribed pairs**, **Broadcast queue**, **PostgreSQL**, **Connected clients**.
+The **subscribed pairs** chip wall lists every USDT market on the MEXC stream — a dense wall of symbol tags in alphanumeric order. Scroll it when you suspect a new listing never subscribed.
+
+Four summary cards below:
+
+| Card | What to watch |
+|------|----------------|
+| **Subscribed pairs** | Tracked vs actively printing counts. Footer: aggregate **trades/min** + **MEXC connection healthy**. |
+| **Broadcast queue** | Internal fan-out depth — should stay near zero; growth means clients or Postgres writes lag. |
+| **PostgreSQL** | Total trades stored, messages sent to browsers, server start time. |
+| **Connected clients** | Unique IPs and WebSocket sessions reading right now. |
+
+When public users report “frozen tape” but trades/min is nonzero, check **connected clients** — you may have a front-end issue, not ingest.
 
 ![Subscribed pairs and server metrics — MEXC stream, queue, PostgreSQL, clients](assets/server-metrics.png)
 
 ### System logs
 
-Dark **system log** console for connection lifecycle: config load, monitor init, WebSocket connect/retry, auth, bulk subscribe, welcome message.
+Dark **system log** console filtered to connection lifecycle — no per-trade spam. Typical boot sequence:
+
+1. Config loaded from server.
+2. Admin monitor initializes (MessagePack mode).
+3. WebSocket connect attempt with URL and retry count.
+4. Authentication success with masked API key prefix.
+5. Bulk subscribe to **all** symbols (full fleet list; UI truncates display).
+6. Server welcome and **successfully subscribed** confirmation.
+
+Use when the public site shows zero trades/min but MEXC itself is up — you will see whether auth failed, subscribe timed out, or the socket never reconnect after a key rotation.
 
 ![System logs — WebSocket connect, auth, and symbol subscribe](assets/system-logs.png)
 
 ## Coin Manager
 
-wp-admin **Coin Manager** — fleet hygiene across every tracked USDT pair.
+wp-admin **Coin Manager** is fleet hygiene across every tracked USDT pair — add new listings, prune delisted symbols, reload from the server bootstrap, and validate SEO output without leaving WordPress.
 
 ### Overview and dead coins
 
-Stat cards: **Tracked coins**, **Live stream**, **Never traded**, **Dead / missing**. **Dead & missing** panel with one-click remove and **Refresh dead list**.
+Four stat cards summarize fleet health:
+
+| Card | Meaning |
+|------|---------|
+| **Tracked coins** | Symbols on the server list; footer shows aggregate trades/min. |
+| **Live stream** | Pairs receiving trades now; footer counts idle (no print in 60s). |
+| **Never traded** | Added but no historical print yet — common right after listing. |
+| **Dead / missing** | Delisted on MEXC, removed from stream, or never subscribed. |
+
+The **Dead & missing** panel lists red chips for symbols no longer on the exchange. One click **removes** them so sitemap and SSR do not 404 forever. **Refresh dead list** pulls the latest diff from the backend after a MEXC maintenance window.
 
 ![Coin Manager overview — tracked, live, dead, and missing counts](assets/coin-manager-overview.png)
 
 ### Add, reload, and tracked list
 
-**Reload symbols on server**, single add, bulk import, sortable **All tracked coins** table with trades/min, stream status, remove action.
+**Reload symbols on server** syncs the WordPress coin list with the Python bootstrap — run after a backend deploy or MEXC listing batch.
+
+- **Single add** — type a symbol, press Add coin.
+- **Bulk import** — paste one symbol per line, **Add all** for dozens of new listings.
+
+The **All tracked coins** table is the sortable fleet roster: symbol, **trades/min**, **stream** status (live vs idle), **ever traded** flag, and **Remove** per row. **Refresh now** updates stream stats without reloading the page.
 
 ![All tracked coins — trades per minute, stream status, remove action](assets/coin-manager-tracked.png)
 
 ### Schema.org validation
 
-**Run validation** — Python API health + Node SSR structure checks (bot section, hourly table, KPI strip, JSON-LD, symbol in document). Expandable **JSON-LD key inventory**.
+Before you push a new coin to production SEO, pick a symbol and hit **Run validation**. Two layers:
+
+**Python API — server stats**: connected clients, messages sent, latency (min / max / avg), compression ratio, subscription room counts.
+
+**Node SSR — HTML structure checks**: Bot Activity section, 24h hourly table, KPI strip, ring gauge, Schema.org JSON-LD block, symbol string in document, HTML byte size sanity check.
+
+The expandable **JSON-LD key inventory** lists every Schema.org field the SSR emitted. Operators confirm Google Rich Results will see a real `Dataset`, not a stub page.
 
 ![Schema.org validation — Python API and Node SSR structure checks](assets/schema-validation.png)
 
@@ -168,15 +216,34 @@ Stat cards: **Tracked coins**, **Live stream**, **Never traded**, **Dead / missi
 
 ### Activity log
 
-Timestamped operator actions with success/warning/error color coding.
+Timestamped **activity log** records operator actions: coin add/remove, bulk import results, server reload (with POST status), auto-refresh coin-count changes, and success/warning/error color coding.
 
 ![Coin Manager activity log — add, remove, reload events](assets/coin-manager-activity-log.png)
 
 ## Sitemap and IndexNow
 
-**MEXC Sitemap & Indexing** — public sitemap URL check, WordPress hook, static file fallback, IndexNow queue, auto-push on publish, paginated coin table, **Sync now** from backend bootstrap.
+Search discovery is first-class — a per-coin URL for every tracked symbol would be impossible to submit by hand.
+
+### Sitemap status and IndexNow queue
+
+**MEXC Sitemap & Indexing** dashboard shows:
+
+- **Public sitemap URL** with live HTTP check.
+- **WordPress hook** registered and **static file** present for fallback.
+- **Total URLs** in sitemap and cache timestamp.
+- Buttons to **view XML**, open **Google Search Console**, and **save static sitemap file** after bulk coin changes.
+
+**IndexNow queue** panel tracks pending URLs, last batch time/status, sent vs remaining counts, and **last push new coins** after a listing batch.
 
 ![MEXC Sitemap and IndexNow queue status](assets/sitemap-indexing.png)
+
+### Auto-push, coin table, and API sync
+
+- **Auto push on publish** — when a WordPress post or page goes live, its permalink hits IndexNow automatically.
+- **Coins in sitemap** — paginated table of symbol + path — catch typos before Google does.
+- **Sync now** — pulls the authoritative coin list from the Python API bootstrap and rebuilds sitemap entries.
+
+Typical workflow after MEXC lists new pairs: bulk add in Coin Manager → **Reload symbols on server** → **Sync now** on sitemap → watch IndexNow queue drain → spot-check one symbol in Schema validation.
 
 ![IndexNow auto-push, sitemap coin list, and API sync](assets/sitemap-coins-sync.png)
 
