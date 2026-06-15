@@ -17,6 +17,20 @@
 | Data | PostgreSQL trade history on backend; WordPress options for coin lists and SEO state |
 | Hosting | WordPress on shared hosting; Python/Node services on self-hosted Linux servers |
 
+## Shared hosting, heavy work on the server
+
+Logic Encoder publishes the MEXC dashboard on **WordPress shared hosting** — the right layer for shortcodes, sitemaps, IndexNow, and cached snapshot HTML, but the wrong place to absorb a full-exchange trade firehose. From the start the goal was to **keep WordPress thin**: PHP renders the shell, stores coin lists and SEO state, and receives finished payloads. Ingest, aggregation, PostgreSQL, MessagePack fan-out, chart generation, and SSR data bundles run on a **self-hosted Linux server** I operate separately — not inside shared-hosting PHP workers.
+
+That split was a deliberate optimization challenge on tight Hostinger limits. **More than 1,400 USDT spot pairs** run on the live MEXC install today; the same architecture carries **roughly 8,000+ Gate.io pairs** on the sibling Gate stats product. Visitors still get realtime tapes and rolling analytics in the browser; WordPress mostly **displays and indexes** what the backend already computed. Updates keep flowing over WebSocket with REST and transient mirrors as fallback — the site stays current without moving heavy math back onto shared hosting.
+
+The hosting control panel agrees: CPU, memory, PHP workers, disk throughput, IOPS, and concurrent process charts sit well below plan ceilings while both fleets are active — the outcome I was aiming for after offloading work, tuning batch paths, and trimming what PHP has to touch.
+
+![Hostinger shared hosting — CPU and memory usage vs plan limits](assets/hostinger-cpu-memory.jpg)
+
+![Hostinger shared hosting — disk throughput and PHP worker count](assets/hostinger-throughput-workers.jpg)
+
+![Hostinger shared hosting — storage IOPS and max processes](assets/hostinger-iops-processes.jpg)
+
 ## Fleet browser (`/mexc-app/`)
 
 The **market grid** at [logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/) is the entry point when you want every pair at once. Shortcode **`[mexc_dashboard]`** embeds the same shell; `symbol="PIUSDT"` focuses one pair; `?coin=BTC` deep-links on load.
@@ -225,6 +239,8 @@ Typical workflow after MEXC lists new pairs: bulk add in Coin Manager → **Relo
 ![IndexNow auto-push, sitemap coin list, and API sync](assets/sitemap-coins-sync.png)
 
 Private code: [mexc-live-stats-plugin](https://github.com/logicencoder/mexc-live-stats-plugin) · live data [mexc-live-stats-backend](https://github.com/logicencoder/mexc-live-stats-backend)
+
+Backend overview: [mexc-live-stats-backend-overview](https://github.com/logicencoder/mexc-live-stats-backend-overview)
 
 See [REPOS.md](REPOS.md).
 
