@@ -1,5 +1,7 @@
 # MEXC Live Stats
 
+![MEXC Live Stats — public trading statistics dashboard](assets/live-dashboard.png)
+
 Public **MEXC spot trading statistics** on logicencoder.com — live trade tape, per-symbol analytics, coin search, CSV export, and indexable SEO pages for individual USDT pairs.
 
 Private plugin: [logicencoder/mexc-live-stats-plugin](https://github.com/logicencoder/mexc-live-stats-plugin). Data pipeline: [mexc-live-stats-backend](https://github.com/logicencoder/mexc-live-stats-backend) — [backend overview](https://github.com/logicencoder/mexc-live-stats-backend-overview).
@@ -23,6 +25,14 @@ Real-time WebSocket from **`wss://ws.logicencoder.com/ws`** (msgpack frames). Tr
 ## WordPress admin
 
 Settings: WebSocket URL, REST API URL, snapshot toggles, sitemap / IndexNow integration. Snapshot dashboard shows file counts and disk usage. Manual sitemap generate and search-engine ping actions.
+
+Built-in **WebSocket monitor** — throughput, latency, subscribed pairs, PostgreSQL trade counts, broadcast queue, and connection logs for operators debugging the live feed.
+
+<img src="assets/websocket-monitor.png" alt="WebSocket monitor — throughput, latency, and API health" width="860" />
+
+<img src="assets/server-metrics.png" alt="Subscribed pairs and server metrics — MEXC stream, queue, PostgreSQL, clients" width="860" />
+
+<img src="assets/system-logs.png" alt="System logs — WebSocket connect, auth, and symbol subscribe" width="860" />
 
 **REST (`mexc/v1`):**
 
