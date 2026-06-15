@@ -2,9 +2,7 @@
 
 ![MEXC Live Stats — per-coin analytics dashboard](assets/live-dashboard.png)
 
-**Live MEXC spot statistics** on Logic Encoder — per-pair analytics, trade tape, bot-activity scoring, and indexable pages for 1,400+ USDT markets. Traders and researchers open [logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/) for the full symbol grid, or land directly on **[/mexc/{SYMBOL}/](https://logicencoder.com/mexc/)** for a deep-dive on one pair. Each coin page is a self-contained analytics dashboard: price header, symbol picker, TradingView chart, market panels, trade statistics, bot detection, live tape, and 24h hourly activity — plus Schema.org data for search engines.
-
-The featured image is the operator’s **full-resolution** page capture (**1261×2764** px) from disk — not a downscaled chat attachment. Section images below are **1261 px-wide crops** from the same source file.
+**Live MEXC spot statistics** on Logic Encoder — per-pair analytics, trade tape, bot-activity scoring, and indexable pages across the full USDT spot fleet. Traders and researchers open [logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/) for the full symbol grid, or land directly on **[/mexc/{SYMBOL}/](https://logicencoder.com/mexc/)** for a deep-dive on one pair. Each coin page is a self-contained analytics dashboard: price header, symbol picker, TradingView chart, market panels, trade statistics, bot detection, live tape, and 24h hourly activity — plus Schema.org data for search engines.
 
 ## Tech stack
 
@@ -84,7 +82,7 @@ Crawlers receive SSR HTML + **Schema.org JSON-LD** (`Dataset` with price, volume
 
 ## Visitor experience
 
-Public pages use a **MessagePack WebSocket** feed — compact at 1,400-pair scale. Pair switch resubscribes in-page; tape **freeze** pauses auto-scroll; **CSV export** dumps visible rows. Per-symbol price precision comes from exchange metadata on the backend.
+Public pages use a **MessagePack WebSocket** feed — compact at full-fleet scale. Pair switch resubscribes in-page; tape **freeze** pauses auto-scroll; **CSV export** dumps visible rows. Per-symbol price precision comes from exchange metadata on the backend.
 
 ## Monitor Dashboard
 
@@ -97,7 +95,7 @@ Top status bar shows **API** and **SSR** reachability with response times, plus 
 The **WebSocket throughput** grid tracks:
 
 - **Messages/sec** and **download KB/s** — is data actually flowing right now?
-- **Peak rate** and **total downloaded** — cumulative volume since server start (hundreds of GB on a busy fleet).
+- **Peak rate** and **total downloaded** — cumulative volume since server start.
 - **Reconnects** and **server uptime** — spot flapping connections or recent restarts.
 - **Min / avg / current latency** — end-to-end delay from exchange ingest to your browser (spikes here mean UI lag even if MEXC is fine).
 - **Compression ratio** — MessagePack + gzip savings vs raw protobuf size.
@@ -108,7 +106,7 @@ The **3-hour rolling chart** plots download speed and messages/sec per minute �
 
 ### Subscribed pairs and server metrics
 
-The **subscribed pairs** chip wall lists every USDT market on the MEXC stream — typically 1,400+ blue tags in alphanumeric order. Scroll it when you suspect a new listing never subscribed.
+The **subscribed pairs** chip wall lists every USDT market on the MEXC stream — a dense wall of symbol tags in alphanumeric order. Scroll it when you suspect a new listing never subscribed.
 
 Four summary cards below:
 
@@ -131,7 +129,7 @@ Dark **system log** console filtered to connection lifecycle — no per-trade sp
 2. Admin monitor initializes (MessagePack mode).
 3. WebSocket connect attempt with URL and retry count.
 4. Authentication success with masked API key prefix.
-5. Bulk subscribe to **all** symbols (1,400+ pairs listed, truncated in UI).
+5. Bulk subscribe to **all** symbols (full fleet list; UI truncates display).
 6. Server welcome and **successfully subscribed** confirmation.
 
 Use when the public site shows zero trades/min but MEXC itself is up — you will see whether auth failed, subscribe timed out, or the socket never reconnect after a key rotation.
@@ -140,7 +138,7 @@ Use when the public site shows zero trades/min but MEXC itself is up — you wil
 
 ## Coin Manager
 
-wp-admin **Coin Manager** is fleet hygiene for 1,400+ pairs — add new listings, prune delisted symbols, reload from the server bootstrap, and validate SEO output without leaving WordPress.
+wp-admin **Coin Manager** is fleet hygiene across every tracked USDT pair — add new listings, prune delisted symbols, reload from the server bootstrap, and validate SEO output without leaving WordPress.
 
 ### Overview and dead coins
 
@@ -192,13 +190,13 @@ The expandable **JSON-LD key inventory** lists every Schema.org field the SSR em
 
 ### Activity log
 
-Timestamped **activity log** records operator actions: coin add/remove, bulk import results, server reload (with POST status), auto-refresh coin-count changes, and success/warning/error color coding. When someone asks “who removed BUTTHOLEUSDT yesterday?” the answer is in this console.
+Timestamped **activity log** records operator actions: coin add/remove, bulk import results, server reload (with POST status), auto-refresh coin-count changes, and success/warning/error color coding. When someone asks who removed a symbol yesterday, the answer is in this console.
 
 ![Coin Manager activity log — add, remove, reload events](assets/coin-manager-activity-log.png)
 
 ## Sitemap and IndexNow
 
-Search discovery is first-class — 1,400+ coin URLs would be impossible to submit by hand.
+Search discovery is first-class — a per-coin URL for every tracked symbol would be impossible to submit by hand.
 
 ### Sitemap status and IndexNow queue
 
@@ -206,7 +204,7 @@ Search discovery is first-class — 1,400+ coin URLs would be impossible to subm
 
 - **Public sitemap URL** with live HTTP check — confirms WordPress serves a valid XML urlset.
 - **WordPress hook** registered and **static file** present in the plugin for fallback.
-- **Total URLs** in sitemap (~1,479) and cache timestamp.
+- **Total URLs** in sitemap and cache timestamp.
 - Buttons to **view XML**, open **Google Search Console**, and **save static sitemap file** after bulk coin changes.
 
 **IndexNow queue** panel tracks batch submissions to Bing/Yandex:
