@@ -1,10 +1,10 @@
 # MEXC Live Stats
 
-![MEXC Live Stats — public trading statistics dashboard](assets/live-dashboard.png)
+![MEXC Live Stats — per-coin analytics dashboard](assets/live-dashboard.png)
 
-**Live MEXC spot statistics** on Logic Encoder — trade tape, per-pair analytics, coin search, CSV export, and indexable pages for individual USDT markets. Traders and researchers open [logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/) for a full-market grid with live prices and volume; each pair also gets its own SEO URL with charts, bot-activity panels, and structured data for search engines.
+**Live MEXC spot statistics** on Logic Encoder — per-pair analytics, trade tape, bot-activity scoring, and indexable pages for 1,400+ USDT markets. Traders and researchers open [logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/) for the full symbol grid, or land directly on **[/mexc/{SYMBOL}/](https://logicencoder.com/mexc/)** for a deep-dive on one pair. Each coin page is a self-contained analytics dashboard: price header, symbol picker, TradingView chart, market panels, trade statistics, bot detection, live tape, and 24h hourly activity — plus Schema.org data for search engines.
 
-The hero screenshot shows the real public layout: a **searchable coin list** on the left (1,400+ USDT pairs), a **detail column** for the selected symbol with KPIs and charts, and a **live trade tape** on the right with freeze and CSV export. Nothing here requires a MEXC account — the backend ingests the public protobuf stream once and fans out to every browser, so readers do not open 1,400 exchange sockets themselves.
+The featured screenshot shows a **per-coin page** layout (example pair in the header): breadcrumb navigation, live price with direction sparkline, collapsible **Active Coins** band, embedded chart, three rows of analysis panels, and a full-width hourly volume chart. No MEXC account required — one backend ingest fans out to every reader.
 
 ## Tech stack
 
@@ -19,73 +19,72 @@ The hero screenshot shows the real public layout: a **searchable coin list** on 
 | Data | PostgreSQL trade history on backend; WordPress options for coin lists and SEO state |
 | Hosting | WordPress on shared hosting; Python/Node services on self-hosted Linux servers |
 
-## Live dashboard
+## Fleet browser (`/mexc-app/`)
 
-The main app at **[logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/)** is a full-screen market browser. Shortcode **`[mexc_dashboard]`** drops the same shell into any WordPress page; add `symbol="PIUSDT"` to focus one pair in an embed. URL parameter **`?coin=BTC`** (or `BTCUSDT`) deep-links a symbol on first load.
+The **market grid** at [logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/) is the entry point when you want every pair at once. Shortcode **`[mexc_dashboard]`** embeds the same shell; `symbol="PIUSDT"` focuses one pair; `?coin=BTC` deep-links on load.
 
-### Layout and coin list
+- **Search** — filter the full USDT list by ticker or name.
+- **Display modes** — ticker only, name only, or both (saved in the browser).
+- **Live rows** — last price, direction, trades-per-minute hints; click a row to open the per-coin analytics layout.
+- **CSV export** and **freeze** on the trade tape where the embed shows it.
 
-The left column is the **fleet browser**:
+One WebSocket connection updates all readers — the browser displays; PostgreSQL and snapshot pipelines write server-side.
 
-- **Search box** — filter 1,400+ rows by ticker or full name as you type.
-- **Display mode toggle** — **ticker only**, **name only**, or **both**; preference persists in localStorage for return visits.
-- **Sortable columns** — symbol, last price, direction arrow, trades-per-minute hint; click headers to resort when hunting volatile listings.
-- **Row click** — switches the active pair everywhere (tape, charts, KPIs) without full page reload.
+## Per-coin analytics page
 
-Each row updates from the shared WebSocket feed — when a pair prints on MEXC, its row lights up across all connected readers simultaneously.
+Canonical URLs: **[/mexc/{SYMBOL}/](https://logicencoder.com/mexc/)** (e.g. `/mexc/BTCUSDT/`). Node SSR hydrates crawlers; humans get the interactive dashboard below. The same panel set powers SEO JSON-LD — rankings in search reflect live fields, not static copy.
 
-### Detail column — KPIs and charts
+### Symbol header and Active Coins
 
-The center panel follows the selected symbol:
+The top band identifies the **active pair** (full name + USDT ticker), **MEXC** badge, and **Share** link to copy the canonical URL. **Favorite** star adds the pair to a quick-access row.
 
-- **Headline price** with direction vs last print.
-- **24h and session stats** — volume, high/low context, trades-per-minute.
-- **15-minute price chart** — short-horizon movement for scalpers watching a fresh listing.
-- **24h hourly volume chart** — bar chart with hover tooltips splitting **buy vs sell** volume and USDT notional per hour; spot whether flow is one-sided bot accumulation or two-sided retail.
+**Price block** — large last price in USDT, direction arrow, inline **15-minute sparkline**, and **last updated** timestamp so you know the feed is alive.
 
-Charts read from in-memory history buffered per symbol on the client, fed by the backend stream — not recomputed from an empty browser cache on first visit.
+**Active Coins** — symbol count for the fleet, **search** field, **Ticker / Name / Both** toggle, collapse control, **Favorites** row, and an alphabetical **chip grid** to switch pairs without leaving the page. Selecting a chip rebinds every panel below to the new symbol.
 
-### Live trade tape
+![Symbol header, favorites, and Active Coins grid](assets/per-coin-header-coins.png)
 
-The right column is the **deal tape**:
+### TradingView chart
 
-- Columns: **time**, **price**, **amount**, **USDT notional**, **side** (color-coded buy/sell).
-- **Auto-scroll** follows the tail by default; **freeze** (snowflake button) pauses new rows so you can read a burst — queued prints show a badge until you unfreeze.
-- **Export menu** — download visible trades as **CSV** for Excel, Google Sheets, or desk Slack; proper escaping and decimal formatting for downstream analysis.
+Full-width **TradingView** embed for the active pair: timeframe buttons (minutes through hours), indicator and drawing toolbar, candlesticks with volume sub-chart, and exchange label in the chart chrome. Collapse the panel when you want more vertical space for the analytics grid. Symbol in the chart header tracks the chip you picked above.
 
-### Visitor analytics
+![TradingView chart — timeframes, indicators, and volume](assets/per-coin-tradingview.png)
 
-A lightweight analytics script records page engagement (views, time on page) without blocking the WebSocket thread — operators see traffic in wp-admin; visitors see no extra UI chrome.
+### Market overview, volume, and buy/sell panels
 
-The browser is **display-only**: PostgreSQL writes, snapshot generation, and sitemap updates all happen server-side so concurrent readers do not hammer your database.
+Three side-by-side panels summarize **24h market structure**:
 
-## Per-coin SEO pages
+**Current Market Overview** — 24h open, price 24h ago, change vs open and real-time change (each with a **−10% / 0% / +10%** sentiment bar), 24h high and low, **VWAP**, and **volatility** with a stable → wild scale.
 
-Every tracked symbol gets a canonical URL at **[/mexc/{SYMBOL}/](https://logicencoder.com/mexc/)** — for example `/mexc/BTCUSDT/` or `/mexc/PIUSDT/`. These are not static marketing stubs; **Node SSR** fills each page with live trading data at request time. Crawlers and social bots receive full HTML; humans get the interactive dashboard when appropriate.
+**Volume Analysis** — total 24h volume in USDT and base asset; **buy vs sell volume** bars and values; **buy/sell volume ratio** on a strong-sell → strong-buy scale; **net flow** in USDT and coins with direction arrow; **whale activity** percentage on a retail → whale dominance scale.
 
-A typical coin page includes:
+**Buy/Sell Analysis** — 24h trade count, buy and sell counts with percentages, **count ratio**, **trading direction** label and bar (all-sell → balanced → all-buy), and **buy volume %** with matching gauge.
 
-- **KPI strip** — current price, 24h change, volume, and headline metrics above the fold.
-- **24h hourly table** — hour-by-hour price and volume so trends are visible without opening the main app.
-- **Bot-activity ring** — visual share of flow that looks automated vs manual over the recent window.
-- **Schema.org JSON-LD** — a `Dataset` block with 50+ fields (price, volume, buy/sell split, VWAP, utilization, symbol labels) so Google and AI crawlers index real numbers, not placeholder copy.
-- **Chart PNG** — optional social preview image generated by the backend snapshot pipeline.
+![Market overview, volume analysis, and buy/sell analysis panels](assets/per-coin-market-panels.png)
 
-**Routing**: `/mexc/`, `/mexc-app/`, and legacy query forms redirect to canonical `/mexc/{SYMBOL}/` URLs. When SSR is unavailable, static snapshot HTML under `/snapshots/mexc/` still gives crawlers readable content. The WordPress plugin proxies SSR requests and merges backend pushes — operators never edit PHP templates per coin.
+### Trade analytics, bot activity, and live tape
+
+**Trade Analytics** — average trade size in USDT and base asset with a micro → retail → pro scale; **average interval** between prints (active → slow); **largest trade** size, side, and time; distribution bars for **small** (&lt;$10), **medium** ($10–$100), and **large** (&gt;$100) trade tiers.
+
+**Bot Activity** — **bot score** on a clean → bot scale; **repeat size**, **repeat interval**, **round lot**, and **burst score** each with organic → suspect → likely → confirmed style bars; qualitative labels summarize mixed algo/human flow.
+
+**Real-Time Trades** — scrolling ledger: time, symbol, price, amount, USDT notional, color-coded **BUY/SELL**; side stripe on each row; **freeze** and **export** controls in the panel header.
+
+![Trade analytics, bot activity scoring, and real-time trades tape](assets/per-coin-analytics-tape.png)
+
+### 24h hourly activity chart
+
+Full-width **24H Trading Activity** bar chart: each hour shows **buy** (green) and **sell** (red) base-asset volume; hover/tooltip exposes hour label plus buy and sell totals in coin and USDT. Use it to see which hours were one-sided vs two-sided without exporting CSV.
+
+![24h hourly trading activity — buy vs sell volume by hour](assets/per-coin-24h-activity.png)
+
+### SEO and routing
+
+Crawlers receive SSR HTML + **Schema.org JSON-LD** (`Dataset` with price, volume, buy/sell split, VWAP, and dozens of trading fields). `/mexc/`, `/mexc-app/`, and legacy query URLs redirect to canonical `/mexc/{SYMBOL}/`. Static snapshots under `/snapshots/mexc/` backfill when live SSR is down.
 
 ## Visitor experience
 
-Public pages connect over a **WebSocket** feed using **MessagePack** frames — smaller on the wire than JSON at 1,400-pair scale.
-
-| Behavior | Detail |
-|----------|--------|
-| Live tape | Color-coded sides, timestamps, USDT notional on every row |
-| Scroll / freeze | Auto-scroll for monitoring; freeze to inspect a wall of prints |
-| Pair switch | Search or click; UI resubscribes without navigation |
-| Bot-activity | Ring + hourly panels summarize mechanical vs organic flow |
-| Precision | Per-symbol price decimals from exchange metadata |
-
-Latency and compression are tuned for wide subscription lists: one backend process ingests MEXC once and broadcasts to all readers instead of each browser opening its own exchange socket.
+Public pages use a **MessagePack WebSocket** feed — compact at 1,400-pair scale. Pair switch resubscribes in-page; tape **freeze** pauses auto-scroll; **CSV export** dumps visible rows. Per-symbol price precision comes from exchange metadata on the backend.
 
 ## Monitor Dashboard
 
@@ -115,7 +114,7 @@ Four summary cards below:
 
 | Card | What to watch |
 |------|----------------|
-| **Subscribed pairs** | Tracked vs actively printing (e.g. 1,460 live of 1,482). Footer: aggregate **trades/min** + **MEXC connection healthy**. |
+| **Subscribed pairs** | Tracked vs actively printing counts. Footer: aggregate **trades/min** + **MEXC connection healthy**. |
 | **Broadcast queue** | Internal fan-out depth — should stay near zero; growth means clients or Postgres writes lag. |
 | **PostgreSQL** | Total trades stored, messages sent to browsers, server start time. |
 | **Connected clients** | Unique IPs and WebSocket sessions reading right now. |
