@@ -21,7 +21,7 @@
 
 Logic Encoder publishes the MEXC dashboard on **WordPress shared hosting** — the right layer for shortcodes, sitemaps, IndexNow, and cached snapshot HTML, but the wrong place to absorb a full-exchange trade firehose. From the start the goal was to **keep WordPress thin**: PHP renders the shell, stores coin lists and SEO state, and receives finished payloads. Ingest, aggregation, PostgreSQL, MessagePack fan-out, chart generation, and SSR data bundles run on a **self-hosted Linux server** I operate separately — not inside shared-hosting PHP workers.
 
-That split was a deliberate optimization challenge on tight Hostinger limits. **More than 1,400 USDT spot pairs** run on the live MEXC install today; the same architecture carries **roughly 800 Gate.io pairs** on the sibling Gate stats product. Visitors still get realtime tapes and rolling analytics in the browser; WordPress mostly **displays and indexes** what the backend already computed. Updates keep flowing over WebSocket with REST and transient mirrors as fallback — the site stays current without moving heavy math back onto shared hosting.
+That split was a deliberate optimization challenge on tight Hostinger limits. **More than 1,400 USDT spot pairs** run on the live MEXC install today; the same architecture carries **roughly 700 Gate.io pairs** on the sibling Gate stats product. Visitors still get realtime tapes and rolling analytics in the browser; WordPress mostly **displays and indexes** what the backend already computed. Updates keep flowing over WebSocket with REST and transient mirrors as fallback — the site stays current without moving heavy math back onto shared hosting.
 
 The hosting control panel agrees: CPU, memory, PHP workers, disk throughput, IOPS, and concurrent process charts sit well below plan ceilings while both fleets are active — the outcome I was aiming for after offloading work, tuning batch paths, and trimming what PHP has to touch.
 
@@ -38,7 +38,7 @@ The dashboard at [logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/
 ### Realtime connection
 
 - **WebSocket** — MessagePack frames carry `mexc_trade` ticks and periodic `mexc_stats` aggregates. Trades for the **active symbol** update the hero price, direction arrow, sparkline, tape rows, and the current hour on the 24h bar chart in the same event loop — no polling for headline price.
-- **REST fallback** — `GET /api/stats/memory/{symbol}` loads full 24h stats when you switch pairs or when bootstrap has no cache yet; hero **last price** seeds from `current_price` (last trade in the rolling window) immediately, then WebSocket trades take over.
+- **REST fallback** — `GET /api/stats/memory/{symbol}` loads full 24h stats when you switch pairs or when bootstrap has no cache yet. Hero **last price** seeds from `current_price`, then `24h_open`, VWAP, or high/low fallbacks; if still empty, `GET /api/trades?hours=24&limit=1` pulls the latest DB print. On symbol switch the hero clears to **—** immediately so the previous pair’s price never lingers.
 - **Subscription** — switching chips sends a new `subscribe` action for the active pair; stats for other symbols are ignored so panels never show cross-contaminated data.
 
 ### Symbol header and navigation
@@ -46,7 +46,7 @@ The dashboard at [logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/
 - **Breadcrumb** — Home › MEXC › current pair name (updates on symbol switch).
 - **Title row** — favorite star, **full name — TICKER**, MEXC badge, **Share** button.
 - **Share** — copies the current page URL with `?coin=SYMBOL` to clipboard; button flashes confirmation feedback.
-- **Hero price** — large USDT last trade; **direction arrow** (↑ buy tint, ↓ sell tint) follows the latest print side.
+- **Hero price** — large USDT last trade formatted with **exchange price precision** and thousand separators from **1,000** upward; **direction arrow** (↑ buy tint, ↓ sell tint) follows the latest print side.
 - **15-minute sparkline** — Chart.js line beside the price, fed from per-symbol price history in memory; **hover tooltip** on the mini chart shows the sampled price at that point.
 - **Last updated** — clock time of the last applied tick.
 
@@ -116,7 +116,7 @@ Full-width **hourly bar chart** — green **buy** and red **sell** base-asset vo
 
 ### Symbol switch workflow
 
-Clicking a chip (or loading `?coin=`): clears tape and stats cache, resets sparkline datasets, reloads TradingView, fetches REST stats for immediate panel + hero price fill, re-subscribes WebSocket, and backfills the tape from DB + WS. URL updates via `history.replaceState` so Share stays accurate.
+Clicking a chip (or loading `?coin=`): clears hero to **—**, clears tape and stats cache, resets sparkline datasets, reloads TradingView, fetches REST stats for immediate panel + hero price fill, seeds from recent DB trade if needed, re-subscribes WebSocket, and backfills the tape from DB + WS. URL updates via `history.replaceState` so Share stays accurate.
 
 ## Monitor Dashboard
 
