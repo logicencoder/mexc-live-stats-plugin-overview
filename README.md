@@ -4,7 +4,7 @@
 
 **Live MEXC spot statistics** on Logic Encoder — per-pair analytics, trade tape, bot-activity scoring, and indexable pages for 1,400+ USDT markets. Traders and researchers open [logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/) for the full symbol grid, or land directly on **[/mexc/{SYMBOL}/](https://logicencoder.com/mexc/)** for a deep-dive on one pair. Each coin page is a self-contained analytics dashboard: price header, symbol picker, TradingView chart, market panels, trade statistics, bot detection, live tape, and 24h hourly activity — plus Schema.org data for search engines.
 
-The featured screenshot shows a **per-coin page** layout (example pair in the header): breadcrumb navigation, live price with direction sparkline, collapsible **Active Coins** band, embedded chart, three rows of analysis panels, and a full-width hourly volume chart. No MEXC account required — one backend ingest fans out to every reader.
+The featured screenshot is a **desktop-width** composite (header, chart, and market panels) — same 1024px-wide crops as the section images below, not a narrow mobile scroll capture.
 
 ## Tech stack
 
