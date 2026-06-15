@@ -17,12 +17,6 @@
 | Data | PostgreSQL trade history on backend; WordPress options for coin lists and SEO state |
 | Hosting | WordPress on shared hosting; Python/Node services on self-hosted Linux servers |
 
-## Shared hosting, heavy work on the server
-
-Logic Encoder publishes the MEXC dashboard on **WordPress shared hosting** — the right layer for shortcodes, sitemaps, IndexNow, and cached snapshot HTML, but the wrong place to absorb a full-exchange trade firehose. From the start the goal was to **keep WordPress thin**: PHP renders the shell, stores coin lists and SEO state, and receives finished payloads. Ingest, aggregation, PostgreSQL, MessagePack fan-out, chart generation, and SSR data bundles run on a **self-hosted Linux server** I operate separately — not inside shared-hosting PHP workers.
-
-That split was a deliberate optimization challenge on tight shared-hosting limits. **More than 1,400 USDT spot pairs** run on the live MEXC install today; the same architecture carries **roughly 700 Gate.io pairs** on the sibling Gate stats product. Visitors still get realtime tapes and rolling analytics in the browser; WordPress mostly **displays and indexes** what the backend already computed. Updates keep flowing over WebSocket with REST and transient mirrors as fallback — the site stays current without moving heavy math back onto shared hosting.
-
 ## Live trading app (`/mexc-app/`)
 
 The dashboard at [logicencoder.com/mexc-app/](https://logicencoder.com/mexc-app/) is a **single-page trading console**. Every control below is implemented in the plugin JavaScript (`mexcDashboard`); data comes from the self-hosted backend over WebSocket and REST.
@@ -245,7 +239,11 @@ Humans use **`/mexc-app/`**. Separate **SEO URLs** under `/mexc/{SYMBOL}/` serve
 
 ## Shared hosting headroom (corroboration)
 
-After offloading ingest, async aggregation, and MessagePack fan-out to **self-hosted Linux servers** (dedicated compute — not shared-hosting PHP), WordPress on shared hosting stays a thin display layer. The graphs below are **corroboration only** — they sit at the end so feature documentation above stays primary. CPU, memory, PHP workers, disk throughput, IOPS, and concurrent process charts sit well below plan ceilings while **1,400+ MEXC** and **~700 Gate** pairs run in production.
+Logic Encoder publishes the MEXC dashboard on **WordPress shared hosting** — the right layer for shortcodes, sitemaps, IndexNow, and cached snapshot HTML, but the wrong place to absorb a full-exchange trade firehose. From the start the goal was to **keep WordPress thin**: PHP renders the shell, stores coin lists and SEO state, and receives finished payloads. Ingest, aggregation, PostgreSQL, MessagePack fan-out, chart generation, and SSR data bundles run on **self-hosted Linux servers** with async workers — not inside shared-hosting PHP.
+
+That split was a deliberate optimization on tight shared-hosting limits. **More than 1,400 USDT spot pairs** run on the live MEXC install; the same architecture carries **roughly 700 Gate.io pairs** on the sibling Gate stats product. Visitors still get realtime tapes and rolling analytics in the browser; WordPress mostly **displays and indexes** what the backend already computed. Updates keep flowing over WebSocket with REST and transient mirrors as fallback.
+
+After offloading ingest and fan-out, shared-hosting resource graphs show large margins while both fleets run — **corroboration below**, not the product story. CPU, memory, PHP workers, disk throughput, IOPS, and concurrent process charts sit well below plan ceilings.
 
 ![Shared hosting — CPU and memory usage vs plan limits](assets/hostinger-cpu-memory.jpg)
 
