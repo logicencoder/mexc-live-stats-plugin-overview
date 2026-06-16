@@ -237,13 +237,13 @@ Typical workflow after MEXC lists new pairs: bulk add in Coin Manager → **Relo
 
 Humans use **`/mexc-app/`**. Separate **SEO URLs** under `/mexc/{SYMBOL}/` serve crawler HTML + Schema.org JSON-LD from Node SSR — useful for search, not the interactive product. Static snapshots under `/snapshots/mexc/` backfill when SSR is unavailable.
 
-## Shared hosting headroom (corroboration)
+## Shared hosting headroom
 
 Logic Encoder publishes the MEXC dashboard on **WordPress shared hosting** — the right layer for shortcodes, sitemaps, IndexNow, and cached snapshot HTML, but the wrong place to absorb a full-exchange trade firehose. From the start the goal was to **keep WordPress thin**: PHP renders the shell, stores coin lists and SEO state, and receives finished payloads. Ingest, aggregation, PostgreSQL, MessagePack fan-out, chart generation, and SSR data bundles run on **self-hosted Linux servers** with async workers — not inside shared-hosting PHP.
 
 That split was a deliberate optimization on tight shared-hosting limits. **More than 1,400 USDT spot pairs** run on the live MEXC install; the same architecture carries **roughly 700 Gate.io pairs** on the sibling Gate stats product. Visitors still get realtime tapes and rolling analytics in the browser; WordPress mostly **displays and indexes** what the backend already computed. Updates keep flowing over WebSocket with REST and transient mirrors as fallback.
 
-After offloading ingest and fan-out, shared-hosting resource graphs show large margins while both fleets run — **corroboration below**, not the product story. CPU, memory, PHP workers, disk throughput, IOPS, and concurrent process charts sit well below plan ceilings.
+Shared-hosting resource graphs show large margins while both fleets run. CPU, memory, PHP workers, disk throughput, IOPS, and concurrent process charts sit well below plan ceilings.
 
 ![Shared hosting — CPU and memory usage vs plan limits](assets/hostinger-cpu-memory.jpg)
 
