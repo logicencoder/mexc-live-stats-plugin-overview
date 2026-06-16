@@ -259,4 +259,69 @@ See [REPOS.md](REPOS.md).
 
 ---
 
+## Feature examples (two per capability)
+
+#### Live dashboard shortcode embed
+1. You add `[mexc_dashboard]` to a WordPress page and visitors get the full multi-coin MEXC trading dashboard without editing the theme.
+2. You publish the page and heavy assets load only where the shortcode appears — the rest of the site stays light.
+
+#### Deep-link and share URL
+1. You open `?coin=BTCUSDT` on the dashboard page and the UI jumps straight to Bitcoin with live stats and trades.
+2. You click **Share** and paste the copied link in chat so teammates land on the same symbol without hunting the grid.
+
+#### Coin grid, search, and favorites
+1. You type in the search box and the grid filters instantly to matching tickers or full names.
+2. You star a coin and it appears in the **Favorites** row for one-click switching during a volatile session.
+
+#### Per-coin SEO pages (`/mexc/SYMBOL/`)
+1. You visit `logicencoder.com/mexc/DNXUSDT/` and see a search-friendly coin page with structured trading data — not an empty JavaScript shell.
+2. You share a pretty `/mexc/` URL and social previews use the correct coin title and canonical link.
+
+#### Real-time header and 24h overview
+1. You select a coin and the header updates live price, direction arrow, and **Last Updated** time with a 15-minute sparkline on hover.
+2. You scan open, high, low, VWAP, volatility, and labeled change bars during a fast move.
+
+#### Volume, flow, and bot analytics
+1. You read buy vs sell volume bars, net flow, and whale-activity indicators for the active coin.
+2. You review bot score, repeat-size, and burst indicators to spot algo-heavy markets.
+
+#### Live trade tape
+1. You watch new trades stream in with time, price, amount, USDT value, and buy/sell coloring.
+2. You switch coins and the tape retitles and repopulates for the new symbol within seconds.
+
+#### Freeze and export trades
+1. You click the snowflake button and the trade list stops scrolling so you can read a specific row.
+2. You export the visible feed as **CSV**, **JSON**, or **TXT** for spreadsheet or archival analysis.
+
+#### TradingView and collapsible sections
+1. You expand the **TradingView Chart** panel for the selected symbol, then collapse it to reclaim space on a laptop.
+2. You collapse **Active Coins** on mobile and the layout remembers your choice on the next visit.
+
+#### Coin Manager (operator)
+1. You bulk-paste symbols, click **Add all**, then **Reload symbols on server** so backend subscriptions match your fleet.
+2. You refresh the dead list and prune delisted markets before updating the sitemap.
+
+#### Monitor Dashboard (operator)
+1. You open **Monitor Dashboard** and watch WebSocket throughput, latency, reconnects, and trend charts without SSH.
+2. You read the system log when connections drop and confirm recovery from wp-admin alone.
+
+#### MEXC Sitemap and IndexNow (operator)
+1. You confirm `/mexc-coins-sitemap.xml` returns a valid urlset and submit the URL in Google Search Console.
+2. You queue new `/mexc/SYMBOL/` URLs for IndexNow and run a batch until the pending count reaches zero.
+
+#### Schema.org validation (operator)
+1. You pick a coin in **Coin Manager → Schema.org validation** and review JSON-LD keys before announcing a new listing.
+2. You validate SSR output for a custom symbol when the public page looks fine but rich results fail in Search Console.
+
+#### Plugin settings and health toolbar (operator)
+1. You set WebSocket URL, SSR/API base, update interval, and max favorites on **Settings** and save once for the whole site.
+2. You glance at green/red **API** and **SSR** chips on admin pages and spot symbol count drift after adding coins.
+
+#### Snapshot and crawler static pages
+1. The backend pushes snapshot JSON and WordPress publishes static HTML under `/snapshots/mexc/` with chart images where enabled.
+2. You enable auto sitemap update after snapshots so new coin pages enter the XML index without a manual rebuild.
+
+
+---
+
 **Made by [Logic Encoder](https://logicencoder.com)** · [GitHub](https://github.com/logicencoder) · [Contact](https://logicencoder.com/contact/)
