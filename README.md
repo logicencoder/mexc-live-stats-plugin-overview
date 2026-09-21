@@ -259,7 +259,7 @@ See [REPOS.md](REPOS.md).
 
 ---
 
-## Feature examples (two per capability)
+## Operator workflows
 
 #### Live dashboard shortcode embed
 1. You add `[mexc_dashboard]` to a WordPress page and visitors get the full multi-coin MEXC trading dashboard without editing the theme.
