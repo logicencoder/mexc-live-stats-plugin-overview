@@ -51,7 +51,7 @@ Connection monitoring, server metrics and logs help the operator investigate a s
 
 ## Support discovery and presentation
 
-Structured-data checks, sitemap management and indexing controls support publishing the market pages as part of a wider site. These are operator capabilities, with the implementation kept in private documentation. The existing image set is extensive; a more readable desktop hero would improve the first impression.
+Structured-data checks, sitemap management and indexing controls support publishing the market pages as part of a wider site.
 
 ![MEXC Live Statistics — Support discovery and presentation](assets/schema-validation.png)
 
