@@ -2,18 +2,18 @@
 
 ![MEXC Live Statistics workspace](assets/live-dashboard.png)
 
-A useful market page should connect the latest price with what is happening around it. MEXC Live Statistics combines charts, trade activity and market analytics with a searchable coin catalogue, giving visitors one place to explore a market and operators one place to maintain its publication.
+MEXC Live Statistics is a real-time dashboard for MEXC spot markets, published on [logicencoder.com](https://logicencoder.com). A visitor picks a coin and sees its price, 24-hour statistics, volume and buy/sell balance, a stream of recent trades and detected bot activity, all updated live over a WebSocket connection. The site operator gets a Coin Manager, connection monitoring and the search-engine tooling to publish each coin as its own page.
 
 ## Tech stack
 
 | Layer | Technologies |
 |---|---|
 | Application | PHP, WordPress |
-| Supporting technologies | HTML, CSS, JavaScript; MEXC; TradingView; WebSockets |
+| Supporting technologies | HTML, CSS, JavaScript; MEXC public market data; WebSockets; optional TradingView chart (off by default) |
 
 ## Choose the market to explore
 
-Coin navigation and market headers help visitors find a pair and retain the context of their selection. Favourites and catalogue controls make repeated visits more convenient. The experience is designed for moving between markets rather than treating every page as a separate tool.
+Visitors pick a pair from the coin catalogue; the market header keeps the selected pair and its context visible. Favourites mark the pairs you return to (the number of favourites is limited by a setting, and the limit is stored in the browser, so favourites are personal to the device). The catalogue gives the broad scan, the per-coin view answers a focused question, and a shareable address per coin returns to the same pair.
 
 The catalogue supports a broad scan of the available markets, while the per-coin view supports a focused question. Returning to a familiar pair keeps that research routine easy to resume.
 
@@ -21,7 +21,7 @@ The catalogue supports a broad scan of the available markets, while the per-coin
 
 ## Connect price with trading context
 
-The chart and market panels bring price movement together with daily information. Trade analytics, the live tape and activity views help examine how that movement is being traded. Each panel adds a different perspective to the same market.
+One coin page combines several panels that all follow the selected pair live: **Current Market Overview** (price and 24-hour figures), **Volume Analysis**, **Buy/Sell Analysis** (how trading splits between buyers and sellers), **Trade Analytics**, **Bot Activity** and a live tape of recent trades. An embedded TradingView chart is available as an option that the operator switches on in the settings; it is off by default, and while it is off the page makes no request to TradingView at all. When enabled it loads when opened and unloads when collapsed.
 
 The chart, market panels and recent activity describe different aspects of the same pair. Their shared context helps visitors examine a movement without collecting the information across several pages.
 
@@ -41,7 +41,7 @@ The daily activity view makes it easier to review how the selected market's sess
 
 ## Keep the market catalogue useful
 
-Coin Manager supports reviewing, adding, reloading and maintaining tracked entries. Overview and activity information make maintenance easier to follow, including handling markets that are no longer useful. This gives the site owner a working catalogue rather than a static list.
+The Coin Manager is the operator's catalogue workspace. Its Overview summarises the tracked set, **Dead & missing coins** lists pairs that stopped trading or never returned data, **Add & reload** adds a pair or reloads the list from the exchange, **All tracked coins** shows the full collection, and the **Activity log** records what changed. The refresh interval of the manager is configurable.
 
 Catalogue administration keeps the markets offered to visitors connected to the ones being followed. Review the tracked selection and activity before deciding which entries need maintenance.
 
@@ -57,7 +57,7 @@ Catalogue activity records help the operator follow what changed during maintena
 
 ## Monitor the publishing experience
 
-Connection monitoring, server metrics and logs help the operator investigate a stalled or incomplete market view. Having those checks close to catalogue management shortens routine support work. Visitors benefit from an operator who can find the relevant issue quickly.
+The monitoring area shows the live health of the data connection: WebSocket throughput, download speed and messages per second over the last three hours, the number of subscribed pairs, server metrics and system logs. Open it first when a coin page looks stalled: the throughput and subscription figures show whether data is still arriving, and the logs show why not.
 
 Connection and server views help explain a publishing interruption. Operators can inspect the current state and relevant logs while the visitor-facing pages remain focused on market information.
 
@@ -73,7 +73,7 @@ System logs support the next stage of an investigation when a status indicator i
 
 ## Support discovery and presentation
 
-Structured-data checks, sitemap management and indexing controls support publishing the market pages as part of a wider site.
+Every coin can be published as a server-rendered HTML page with Schema.org structured data, so search engines see the content without running JavaScript. The SSR HTML & Schema.org validation screen checks a page and reports the result. The sitemap tools show the sitemap status, can include snapshot pages and chart images, update automatically, and sync the coin list from the data service; an IndexNow queue pushes new or changed pages to participating search engines, automatically on publish or by manual submission.
 
 Search and presentation tools support making the market pages useful beyond an already-open dashboard. Review the published page and its discovery information together when maintaining the catalogue.
 
